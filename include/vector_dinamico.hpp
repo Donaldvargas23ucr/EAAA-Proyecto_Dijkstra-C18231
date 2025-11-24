@@ -4,19 +4,20 @@
 
 #include <cstddef>
 #include <new>
-#include <stdexcept>
+#include <stdexcept> // Para control de out of ranges
 #include <utility>
 
 using namespace std;
 
-template<typename T>
+template<typename T> // Template normal para cualquier tipo de dato
 class vector_dinamico {
 private:
-    T* dato;
-    size_t tamanio;
-    size_t capacidad;
+    T* dato; //puntero a array dinámico 
+    size_t tamanio; // cantidad de elementos
+    size_t capacidad; // capacidad en memoria
 
-    // funcion auxiliar para redimensionar
+    // funcion para redimensionar, crea una capacidad mayor que la anterior en memoria, mueve todos los elementos a este y libera memoria en el anterior
+    // con el fin de que el vector aumente su tamaño sin perder valores
     void reallocate(size_t nueva_capacidad) {
         if(nueva_capacidad < tamanio) return;
         
@@ -35,7 +36,7 @@ public:
     // constructor por defecto
     vector_dinamico(size_t initial = 4) : dato(nullptr), tamanio(0), capacidad(initial) {
         if (capacidad == 0) capacidad = 1;
-        dato = static_cast<T*>(::operator new(sizeof(T) * capacidad));
+        dato = static_cast<T*>(::operator new(sizeof(T) * capacidad)); // Reserva memoria sin usar Template aún, no llama a constructor
     }
 
     // iteradores
@@ -44,7 +45,7 @@ public:
     T* end() { return dato + tamanio; }
     const T* end() const { return dato + tamanio; }
 
-    // Constructor de copia
+    // Constructor de copia profunda
     vector_dinamico(const vector_dinamico& copia)
         : dato(nullptr), tamanio(0), capacidad(copia.capacidad) 
     {
@@ -55,14 +56,14 @@ public:
         tamanio = copia.tamanio;
     }
 
-    // Move constructor
+    // Move constructor, aumenta la eficiencia del código, ya que adquiere la memoria del otro vector y el original se vacía.
     vector_dinamico(vector_dinamico&& copia) noexcept 
         : dato(copia.dato), tamanio(copia.tamanio), capacidad(copia.capacidad) {
         copia.dato = nullptr;
         copia.tamanio = 0;
         copia.capacidad = 0;
     }
-
+// Libera la meoria del vector original
     ~vector_dinamico() {
         clear();
         ::operator delete(dato);
@@ -134,7 +135,7 @@ public:
     bool empty() const { 
         return tamanio == 0; 
     }
-
+// limpia el vector
     void clear() {
         for(size_t i=0; i<tamanio; ++i) {
             dato[i].~T();
